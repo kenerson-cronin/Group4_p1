@@ -1,5 +1,6 @@
 import torch
 import logging
+import numpy as np
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -11,9 +12,11 @@ class CustomLinearLayer(torch.autograd.Function):
 
         # implement y = x (mult) w_transpose + b
 
+        output = input@(weight.T) + bias
+
         # YOUR IMPLEMENTATION HERE!
         # output=1 is a placeholder
-        output = 1
+        # output = 1
 
         return output
 
@@ -33,8 +36,12 @@ class CustomLinearLayer(torch.autograd.Function):
 
         input, weight, bias = ctx.saved_tensors
         grad_input = grad_weight = grad_bias = None
-
+        
         # YOUR IMPLEMENTATION HERE!
+
+        grad_input = grad_output@weight
+        grad_weight = grad_output.T@input
+        grad_bias = grad_output
 
         # use either print or logger to print its outputs.
         # make sure you disable before submitting
@@ -49,7 +56,7 @@ class CustomReLULayer(torch.autograd.Function):
         ctx.save_for_backward(input)
 
         # YOUR IMPLEMENTATION HERE!
-        output = 1
+        output = torch.clamp(input, min=0)
         return output
 
     @staticmethod
@@ -58,6 +65,8 @@ class CustomReLULayer(torch.autograd.Function):
 
         grad_input = grad_output.clone()
         # YOUR IMPLEMENTATION HERE!
+
+        grad_input[input < 0] = 0
         
         return grad_input
 
@@ -69,7 +78,8 @@ class CustomSoftmaxLayer(torch.autograd.Function):
         # https://stackoverflow.com/questions/34968722/how-to-implement-the-softmax-function-in-python
 
         # YOUR IMPLEMENTATION HERE!
-        softmax_output = 1
+
+        softmax_output = (torch.exp(input - torch.amax(input))) / torch.exp(input - torch.amax(input)).sum()
 
         ctx.save_for_backward(softmax_output)
         ctx.dim = dim
