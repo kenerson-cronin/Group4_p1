@@ -5,7 +5,7 @@ import torchvision.transforms as transforms
 import torchvision
 import matplotlib.pyplot as plt
 import numpy as np
-
+from collections import defaultdict
 class Pipeline:
     def __init__(self):
 
@@ -53,16 +53,26 @@ class Pipeline:
         correct = 0
         total = 0
         model.eval()
+        """confusion = {
+            pred:{actual: 0 for actual in self.classes} for pred in self.classes
+        }"""
+        confusion = np.zeros((len(self.classes),len(self.classes)))
         with torch.no_grad():
             for batchcount, (images, labels) in enumerate(self.testloader):
+
                 images = images.to(self.device)
                 labels = labels.to(self.device)
 
                 y = model(images)
 
                 _, predicted = torch.max(y, 1)
+                if total < 1:
+                    print("predicted,labels: ", type(predicted),type(labels) , " shapes: ", predicted.shape,labels.shape)
+                for num in range(0,len(labels)):
+                    confusion[predicted[num]][labels[num]] += 1
+                    total += 1
+                
 
-                total += labels.size(0)
                 correct += (predicted == labels).sum().item()
 
         return correct*100/total
