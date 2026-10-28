@@ -79,7 +79,9 @@ class CustomSoftmaxLayer(torch.autograd.Function):
 
         # YOUR IMPLEMENTATION HERE!
 
-        softmax_output = (torch.exp(input - torch.amax(input))) / torch.exp(input - torch.amax(input)).sum()
+        torch_exp = torch.exp(input - torch.amax(input, dim=dim, keepdim=True))
+
+        softmax_output = torch_exp / torch_exp.sum(dim=dim, keepdim=True)
 
         ctx.save_for_backward(softmax_output)
         ctx.dim = dim
@@ -92,7 +94,7 @@ class CustomSoftmaxLayer(torch.autograd.Function):
         dim = ctx.dim
 
         # YOUR IMPLEMENTATION HERE!
-        grad_input = 1
+        grad_input = softmax_output * (grad_output - (grad_output*softmax_output).sum(dim=dim, keepdim=True))
 
         # print(grad_input.shape)
         return grad_input, None

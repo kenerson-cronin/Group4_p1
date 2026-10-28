@@ -104,7 +104,6 @@ class CustomCNN(nn.Module):
         )
 
         s.model = nn.Sequential(
-
             CustomLinear(3136, 512),
             CustomReLU(),
 
@@ -129,11 +128,32 @@ class RefCNN(nn.Module):
         # YOUR IMPLEMENTATION HERE!
         # s.conv = nn.Sequential(
         # )
+        
 
 
         # YOUR IMPLEMENTATION HERE!
         # s.model = nn.Sequential(
         # )
+
+        s.conv = nn.Sequential(
+            nn.Conv2d(1, 16, kernel_size=3, stride=2),
+            CustomReLU(),
+
+            nn.Conv2d(16, 64, kernel_size=3, stride=2),
+            CustomReLU(),
+        )
+
+        s.model = nn.Sequential(
+
+            CustomLinear(3136, 512),
+            CustomReLU(),
+
+            CustomLinear(512, 128),
+            CustomReLU(),
+
+            CustomLinear(128, 10),
+            CustomSoftmax(1),
+        )
 
     def forward(s, x):
         x = s.conv(x)
