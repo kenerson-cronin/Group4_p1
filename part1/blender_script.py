@@ -47,6 +47,9 @@ comp.define_output('Image', color_mode='RGB')  # render RGB layer
 comp.define_output(cam_normals_aov, name='normal', color_mode='BW')  # render normals layer
 
 for i, (fname, input_data) in enumerate(inputs):
+	window_A.render_visibility(True)
+	window_B.render_visibility(True)
+
 	# Select a random background
 	random_bg = np.random.choice(os.listdir("part1/environment"))
 	random_bg = os.path.join("part1/environment", random_bg)
@@ -62,6 +65,9 @@ for i, (fname, input_data) in enumerate(inputs):
 	window_B.location = input_data['window_B']['location']
 	window_B.scale = input_data['window_B']['scale']
 	
+	if np.random.rand() < 0.5:
+		window_B.render_visibility(False)  # Randomly hide window B with 70% probability
+
 	light = bsyn.Light.create('POINT',location=window_A.location,intensity=2000)  # Random light position and intensity
 
 	render_result = comp.render()
