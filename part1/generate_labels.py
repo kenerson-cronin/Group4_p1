@@ -17,9 +17,24 @@ for i in range(N):
     Ypos = np.random.uniform(-3,3)  # Random Y position
     Zpos = np.random.uniform(0,2)  # Random Z position
     data = {
-		'location': [Xpos, Ypos, Zpos],
-		'euler': [np.pi/2, thetaY, thetaZ],
-		'scale': np.random.uniform(0.5, 3, size=None)
-	}
+        'window_A': {
+            'location': [np.random.uniform(-3,3),
+                         np.random.uniform(-3,3),
+                         np.random.uniform(0,2)],
+            'euler': [np.pi/2,
+                      np.random.uniform(np.pi/2, np.pi),
+                      np.random.uniform(0, np.pi/2)],
+            'scale': np.random.uniform(0.5, 2, size=None)
+        },
+        'window_B': {
+            'location': [np.random.uniform(-3,3),
+                         np.random.uniform(-3,3),
+                         np.random.uniform(0,2)],
+            'euler': [np.pi/2,
+                      np.random.uniform(np.pi/2, np.pi),
+                      np.random.uniform(0, np.pi/2)],
+            'scale': np.random.uniform(0.5, 2, size=None)
+        }
+    }
     with open(os.path.join(json_dir, f'{i:04d}.json'), 'w') as outfile:
 	    json.dump(data, outfile)
