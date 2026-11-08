@@ -9,9 +9,15 @@ import numpy as np
 
 inputs = bsyn.Inputs()  # This is an iterable of the jsons passed in via run.py. Also manages progress bar.
 
-window_A = bsyn.Mesh.from_primitive('plane')  # Create window object
-window_B = bsyn.Mesh.from_primitive('plane')  # Create window object
+# Create window meshes
+window_A = bsyn.Mesh.from_obj('assets/windowobj.obj')
+window_B = bsyn.Mesh.from_obj('assets/windowobj.obj')
 
+# Assign pass indexes for binary mask generation
+window_A.assign_pass_index(1)
+window_B.assign_pass_index(1)
+
+# Create background plane
 bg_plane = bsyn.Mesh.from_primitive('plane', scale=50, location=(-30, 20, -10))
 bg_plane.rotation_euler = (np.pi/2,0, 0)  # Rotate the background plane to be vertical
 
@@ -30,9 +36,14 @@ window_B.material = texture
 # Create light source
 light = bsyn.Light.create('SUN') 
 
+# Create 
 cam_normals_aov = bsyn.aov.NormalsAOV(name='cam_normals', ref_frame='CAMERA')
+binary_mask_aov = bsyn.aov.ValueAOV(value=1)
+
 window_A.assign_aov(cam_normals_aov)
 window_B.assign_aov(cam_normals_aov)
+window_A.assign_aov(binary_mask_aov)
+window_B.assign_aov(binary_mask_aov)
 
 cam = bsyn.Camera.create()
 # cam.look_at_object(window,up=(0,0,1))  # Make the camera look at the window
@@ -44,7 +55,7 @@ bsyn.render.render_with_gpu(True)
 # create compositor to output RGB, Normals AOV & Depth
 comp = bsyn.Compositor()
 comp.define_output('Image', color_mode='RGB')  # render RGB layer
-comp.define_output(cam_normals_aov, name='normal', color_mode='BW')  # render normals layer
+comp.define_output(binary_mask_aov, name='binary_mask', is_data=True)
 
 for i, (fname, input_data) in enumerate(inputs):
 	window_A.render_visibility(True)
@@ -68,13 +79,20 @@ for i, (fname, input_data) in enumerate(inputs):
 	if np.random.rand() < 0.5:
 		window_B.render_visibility(False)  # Randomly hide window B with 70% probability
 
+	obstruction = bsyn.Mesh.from_primitive(np.random.choice(['cube','cylinder']))
+	obstruction.scale = np.random.uniform(0.5, 2)
+	obstruction.location = np.random.uniform(-3, 3, size=3)
+	obstruction.render_visibility(np.random.rand() < 0.5)  # Randomly hide the obstruction with 50% probability
+
 	light = bsyn.Light.create('POINT',location=window_A.location,intensity=2000)  # Random light position and intensity
 
 	render_result = comp.render()
-	render_result.save_all(f"example_dataset/{fname}")
+	render_result.save_all(f"dataset/{fname}")
 
 	# Save the pose and lighting as an output json
 	output = {**input_data}  # items to save to output label
 	annotation = bsyn.annotations.bounding_boxes([window_A, window_B], return_fmt='xywh').get_annotation_by_camera('Camera')
 	output['bbox'] = annotation.bbox  # save the bounding box annotations
-	bsyn.file.save_label(output, f'example_dataset/label/{fname}.json')
+	bsyn.file.save_label(output, f'dataset/label/{fname}.json')
+
+	obstruction.delete()  # Delete the obstruction mesh to avoid cluttering the scene

@@ -3,8 +3,8 @@ import os
 import numpy as np
 import json
 
-json_dir = 'dataset'
-N = 5
+json_dir = 'labels'
+N = 50
 
 os.makedirs(json_dir, exist_ok=True)
 
